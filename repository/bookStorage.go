@@ -2,21 +2,20 @@ package repository
 
 import (
 	"bookLibrary/config"
+	"bookLibrary/models"
 	"github.com/go-pg/pg/v10"
 	"github.com/go-pg/pg/v10/orm"
 )
 
 type BookStorageInterface interface {
 	SaveBook(name string, author string) (uint, error)
+	GetBook(id uint) (models.Book, error)
+	GetBooks() ([]models.Book, error)
+	UpdateBook(id uint, name string, author string) (models.Book, error)
+	DeleteBook(id uint) (models.Book, error)
 }
 
 type BookStorage struct {
-}
-
-type Book struct {
-	Id     uint
-	Name   string
-	Author string
 }
 
 func (storage *BookStorage) SaveBook(name string, author string) (uint, error) {
@@ -28,7 +27,7 @@ func (storage *BookStorage) SaveBook(name string, author string) (uint, error) {
 		return 0, err
 	}
 
-	book := &Book{
+	book := &models.Book{
 		Name:   name,
 		Author: author,
 	}
@@ -38,6 +37,53 @@ func (storage *BookStorage) SaveBook(name string, author string) (uint, error) {
 	}
 
 	return book.Id, nil
+
+}
+
+func (storage *BookStorage) GetBook(id uint) (models.Book, error) {
+	db := connectToDb()
+	defer db.Close()
+
+	book := &models.Book{Id: id}
+	err := db.Model(book).WherePK().Select()
+
+	return *book, err
+}
+
+func (storage *BookStorage) GetBooks() ([]models.Book, error) {
+	db := connectToDb()
+	defer db.Close()
+
+	var books []models.Book
+	err := db.Model(&books).Select()
+	if err != nil {
+		return nil, err
+	}
+
+	return books, err
+}
+
+func (storage *BookStorage) UpdateBook(id uint, name string, author string) (models.Book, error) {
+	db := connectToDb()
+	defer db.Close()
+	book := &models.Book{
+		Id:     id,
+		Name:   name,
+		Author: author,
+	}
+	_, err := db.Model(book).WherePK().Update(book)
+
+	return *book, err
+}
+
+func (storage *BookStorage) DeleteBook(id uint) (models.Book, error) {
+	db := connectToDb()
+	defer db.Close()
+
+	book := &models.Book{Id: id}
+	_, err := db.Model(book).WherePK().Delete()
+
+	return *book, err
 
 }
 
@@ -54,7 +100,7 @@ func connectToDb() *pg.DB {
 
 func createSchema(db *pg.DB) error {
 	models := []interface{}{
-		(*Book)(nil),
+		(*models.Book)(nil),
 	}
 
 	for _, model := range models {

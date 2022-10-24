@@ -16,11 +16,11 @@ func NewHandler(bookController *BookController) *Handler {
 func (h *Handler) StartServer() {
 	router := gin.Default()
 
-	router.GET("/book/:id")
-	router.GET("/books")
+	router.GET("/book/:id", h.bookController.GetBook)
+	router.GET("/books", h.bookController.GetBooks)
 	router.POST("/book", h.bookController.AddBook)
-	router.PUT("/book/:id")
-	router.DELETE("/book/:id")
+	router.POST("/book/:id", h.bookController.UpdateBook)
+	router.DELETE("/book/:id", h.bookController.DeleteBook)
 
 	router.Run(":8080")
 }
