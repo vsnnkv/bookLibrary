@@ -1,7 +1,7 @@
 package main
 
-import "bookLibrary/controller"
+import "bookLibrary/controllers"
 
 func main() {
-	controller.StartServer()
+	controllers.InitControllers()
 }
